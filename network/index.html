@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>North West site network - KMZ and improved spreadsheet</title>
+<style>
+  :root { --navy:#1f3864; --blue:#2e5c9a; --ink:#22272e; --grey:#6f7883; --line:#e2e7ee; --bg:#f6f8fb; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 22px 70px; }
+  header { background:linear-gradient(160deg,#16294a,#1f3864 55%,#2e5c9a); color:#fff; padding:44px 0 38px; }
+  header h1 { margin:0 0 8px; font-size:30px; letter-spacing:-.4px; }
+  header p { margin:0; color:#c9d6e8; max-width:70ch; }
+  .eyebrow { text-transform:uppercase; letter-spacing:2px; font-size:11px; color:#8fb0dc; margin-bottom:12px; }
+  h2 { font-size:19px; margin:44px 0 12px; color:var(--navy); letter-spacing:-.2px; }
+  h2 span { font-weight:400; color:var(--grey); font-size:14px; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:12px; margin:-26px 0 0; }
+  .kpi { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+          box-shadow:0 6px 20px rgba(20,40,70,.07); }
+  .kpi b { display:block; font-size:26px; color:var(--navy); line-height:1.15; }
+  .kpi span { font-size:12px; color:var(--grey); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px;
+           display:flex; flex-direction:column; gap:6px; }
+  .card .fmt { font-size:11px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:#8a94a3; }
+  .card h3 { margin:0; font-size:17px; color:var(--navy); }
+  .card p { margin:0; font-size:13.5px; color:#4b5563; flex:1; }
+  .btn { display:inline-block; margin-top:10px; text-align:center; background:var(--navy); color:#fff;
+          text-decoration:none; padding:10px 16px; border-radius:8px; font-weight:600; font-size:14px; }
+  .btn:hover { background:#2e5c9a; }
+  .meta { font-size:12px; color:#8a94a3; }
+  .panel { background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px; overflow:hidden; }
+  .atlas { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin-top:12px;
+            max-height:820px; overflow:auto; padding-right:4px; }
+  .tile { margin:0; background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px 10px 6px;
+           overflow:hidden; }
+  .tile figcaption { display:flex; flex-direction:column; gap:1px; margin:0 2px 6px; }
+  .tile figcaption b { font-size:14px; color:var(--navy); }
+  .tile figcaption span { font-size:11.5px; color:var(--grey); }
+  .tile .warn { color:#a30000; }
+  .tile svg { width:100%; height:auto; aspect-ratio:1.25; display:block; border-radius:8px; }
+  .pring { fill:rgba(255,140,0,.13); stroke:#ff8c00; stroke-width:.7; vector-effect:non-scaling-stroke; }
+  .pl { stroke:#9aa5b1; stroke-width:1; vector-effect:non-scaling-stroke; }
+  .pl-out { stroke:#c00000; stroke-width:1.3; stroke-dasharray:2.4 1.8; vector-effect:non-scaling-stroke; }
+  .pcpe { fill:#0b5cab; stroke:#fff; stroke-width:.8; vector-effect:non-scaling-stroke; }
+  .pcpe-out { fill:#c00000; stroke:#fff; stroke-width:.8; vector-effect:non-scaling-stroke; }
+  .phs { fill:#c00000; stroke:#fff; stroke-width:1.1; vector-effect:non-scaling-stroke; }
+  .plbl { font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-weight:600; fill:#1f3864;
+           paint-order:stroke; stroke:#fff; stroke-width:.5px; stroke-linejoin:round; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; background:#fff; }
+  th { background:var(--navy); color:#fff; text-align:left; font-size:11.5px; letter-spacing:.6px;
+        text-transform:uppercase; padding:9px 10px; position:sticky; top:0; }
+  td { padding:8px 10px; border-top:1px solid var(--line); vertical-align:top; }
+  tr:nth-child(even) td { background:#fbfcfe; }
+  td.n { text-align:right; font-variant-numeric:tabular-nums; }
+  code { font-size:12px; color:#3b475a; }
+  .scroll { max-height:430px; overflow:auto; border:1px solid var(--line); border-radius:12px; }
+  .legend { display:flex; flex-wrap:wrap; gap:18px; font-size:12.5px; color:#4b5563; margin:12px 2px 0; }
+  .legend i { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:6px;
+               vertical-align:-1px; border:1px solid #fff; box-shadow:0 0 0 1px #ccd; }
+  .legend .sq { border-radius:2px; }
+  .tag { font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; text-transform:uppercase;
+          letter-spacing:.5px; }
+  .tag.high { background:#fde2e2; color:#a30000; }
+  .tag.medium { background:#fff1cc; color:#7a5b00; }
+  .tag.low { background:#e9edf3; color:#4b5563; }
+  .tag.info { background:#e7eefb; color:#2e5c9a; }
+  ul.notes { font-size:14px; color:#3b475a; padding-left:20px; }
+  ul.notes li { margin:7px 0; }
+  footer { margin-top:54px; padding-top:18px; border-top:1px solid var(--line); font-size:12.5px; color:#8a94a3; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">North West province &middot; current technology site database</div>
+    <h1>Site network map and improved spreadsheet</h1>
+    <p>All 106 sites from the &ldquo;CURRENT TECHNOLOGY&rdquo; sheet, with every high site drawn at its
+       5 km coverage radius and every connected site linked to the high site that serves it.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="kpis">
+    <div class="kpi"><b>106</b><span>sites in total</span></div>
+    <div class="kpi"><b>20</b><span>high sites</span></div>
+    <div class="kpi"><b>86</b><span>connected sites</span></div>
+    <div class="kpi"><b>5 km</b><span>coverage radius</span></div>
+    <div class="kpi"><b>74</b><span>inside the radius</span></div>
+    <div class="kpi"><b>9</b><span>outside the radius</span></div>
+    <div class="kpi"><b>4</b><span>items to verify</span></div>
+  </div>
+
+  <h2>Downloads <span>&mdash; both files cover exactly the same 106 sites</span></h2>
+  <div class="cards">
+    <div class="card">
+      <div class="fmt">KMZ &middot; 27 KB</div>
+      <h3>Google Earth map</h3>
+      <p>Opens in Google Earth. 20 high sites with a 5 km radius ring, 86 connected sites,
+         a link line from every connected site to its high site, and layers you can switch off.</p>
+      <a class="btn" href="NW_Network_Sites.kmz" download>Download KMZ</a>
+      <div class="meta">Google Earth Pro / web / mobile</div>
+    </div>
+    <div class="card">
+      <div class="fmt">XLSX &middot; 43 KB</div>
+      <h3>Improved spreadsheet</h3>
+      <p>7 sheets: overview, all sites with both distances and the 5 km check, high sites,
+         towns, remote links, data quality and the untouched source rows for audit.</p>
+      <a class="btn" href="NW_Network_Site_Database.xlsx" download>Download Excel</a>
+      <div class="meta">Excel / LibreOffice / Google Sheets</div>
+    </div>
+    <div class="card">
+      <div class="fmt">KML &middot; 327 KB</div>
+      <h3>Plain KML or CSV</h3>
+      <p>Use the KML for Google My Maps or any GIS tool. The CSV is the cleaned data set
+         for import into your own systems.</p>
+      <a class="btn" href="NW_Network_Sites.kml" download>Download KML</a>
+      <div class="meta" style="margin-top:4px">
+        <a href="nw_sites_clean.csv" download style="color:#2e5c9a">or the cleaned CSV</a>
+      </div>
+    </div>
+  </div>
+
+  <h2>Coverage per town <span>&mdash; same geometry as the KMZ, one panel per town</span></h2>
+  <div class="legend">
+    <span><i class="sq" style="background:#c00000"></i>High site</span>
+    <span><i style="background:rgba(255,140,0,.18);border:1px solid #ff8c00"></i>5 km coverage radius</span>
+    <span><i style="background:#0b5cab"></i>Connected site inside the radius</span>
+    <span><i style="background:#c00000"></i>Connected site outside the radius</span>
+    <span><i style="background:#9aa5b1"></i>Link inside the radius</span>
+    <span><i style="background:#c00000;border-radius:0"></i>Link outside the radius</span>
+  </div>
+  <div class="atlas">
+    <figure class="tile">
+      <figcaption><b>Bloemhof</b><span>5 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2516.96 3050.40 19.40 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Bloemhof: high sites with 5 km coverage and connected sites"><rect x="2516.96" y="3050.40" width="19.40" height="13.00" fill="#f8fafd"/><line class="pl" x1="2523.70" y1="3056.14" x2="2525.25" y2="3057.07"/><line class="pl" x1="2523.70" y1="3056.14" x2="2524.58" y2="3057.66"/><line class="pl" x1="2523.70" y1="3056.14" x2="2521.64" y2="3056.50"/><line class="pl" x1="2523.70" y1="3056.14" x2="2523.70" y2="3056.14"/><line class="pl" x1="2523.70" y1="3056.14" x2="2525.27" y2="3057.52"/><circle class="pring" cx="2523.70" cy="3056.14" r="5.00"/><circle class="pcpe" cx="2525.25" cy="3057.07" r="0.18"><title>Bloemhof Hospital - Inside 5 km (1.80 km)</title></circle><circle class="pcpe" cx="2524.58" cy="3057.66" r="0.18"><title>Bloemhof Agriculture &amp; Rural - Inside 5 km (1.76 km)</title></circle><circle class="pcpe" cx="2521.64" cy="3056.50" r="0.18"><title>Bloemhof - Boitumelong Clinic - Inside 5 km (2.09 km)</title></circle><circle class="pcpe" cx="2523.70" cy="3056.14" r="0.18"><title>Bloemhof - Coverdale Clinic - Inside 5 km</title></circle><circle class="pcpe" cx="2525.27" cy="3057.52" r="0.18"><title>Bloemhof Library - Inside 5 km (2.10 km)</title></circle><rect class="phs" x="2523.26" y="3055.70" width="0.88" height="0.88"><title>Bloemhof Social Development - 5 km ring, 5 connected sites</title></rect><text class="plbl" x="2529.00" y="3056.38" font-size="0.65">Bloemhof Social…</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Brits</b><span>9 connected &middot; 3 high sites &middot; 5 km ring &middot; <b class='warn'>4 outside</b></span></figcaption>
+      <svg viewBox="2785.65 2798.68 35.34 39.83" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Brits: high sites with 5 km coverage and connected sites"><rect x="2785.65" y="2798.68" width="35.34" height="39.83" fill="#f8fafd"/><line class="pl" x1="2800.39" y1="2831.11" x2="2799.79" y2="2830.15"/><line class="pl" x1="2800.39" y1="2831.11" x2="2797.12" y2="2833.53"/><line class="pl-out" x1="2800.39" y1="2831.11" x2="2806.05" y2="2832.80"/><line class="pl" x1="2789.70" y1="2834.56" x2="2789.60" y2="2834.36"/><line class="pl" x1="2789.70" y1="2834.56" x2="2790.83" y2="2833.60"/><line class="pl" x1="2789.70" y1="2834.56" x2="2791.01" y2="2831.64"/><line class="pl-out" x1="2796.24" y1="2811.03" x2="2796.10" y2="2818.24"/><line class="pl-out" x1="2796.24" y1="2811.03" x2="2796.18" y2="2818.22"/><line class="pl-out" x1="2796.24" y1="2811.03" x2="2793.24" y2="2802.63"/><circle class="pring" cx="2800.39" cy="2831.11" r="5.00"/><circle class="pring" cx="2789.70" cy="2834.56" r="5.00"/><circle class="pring" cx="2796.24" cy="2811.03" r="5.00"/><circle class="pcpe" cx="2799.79" cy="2830.15" r="0.34"><title>Mothutlung Agriculture - Inside 5 km (1.13 km)</title></circle><circle class="pcpe" cx="2797.12" cy="2833.53" r="0.34"><title>Damonsville Library - Inside 5 km (4.08 km)</title></circle><circle class="pcpe-out" cx="2806.05" cy="2832.80" r="0.34"><title>Mmakau Library - Outside 5 km (5.90 km)</title></circle><circle class="pcpe" cx="2789.60" cy="2834.36" r="0.34"><title>Brits Office of the premier - Inside 5 km (0.23 km)</title></circle><circle class="pcpe" cx="2790.83" cy="2833.60" r="0.34"><title>Brits Agriculture - Inside 5 km (1.49 km)</title></circle><circle class="pcpe" cx="2791.01" cy="2831.64" r="0.34"><title>Oukasie Library - Inside 5 km (3.21 km)</title></circle><circle class="pcpe-out" cx="2796.10" cy="2818.24" r="0.34"><title>Lethlabile Library - Outside 5 km (7.25 km)</title></circle><circle class="pcpe-out" cx="2796.18" cy="2818.22" r="0.34"><title>Lethlabile Education - Outside 5 km (7.23 km)</title></circle><circle class="pcpe-out" cx="2793.24" cy="2802.63" r="0.34"><title>Jericho Library - Outside 5 km (8.97 km)</title></circle><rect class="phs" x="2799.56" y="2830.28" width="1.66" height="1.66"><title>Mothutlung Library - 5 km ring, 3 connected sites</title></rect><text class="plbl" x="2805.69" y="2831.54" font-size="1.22">Mothutlung Library</text><rect class="phs" x="2788.87" y="2833.73" width="1.66" height="1.66"><title>Brits Library - 5 km ring, 3 connected sites</title></rect><text class="plbl" x="2795.00" y="2835.00" font-size="1.22">Brits Library</text><rect class="phs" x="2795.41" y="2810.20" width="1.66" height="1.66"><title>Lethabong Maboloka Library - 5 km ring, 3 connected sites</title></rect><text class="plbl" x="2801.54" y="2811.47" font-size="1.22">Lethabong Maboloka…</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Christiana</b><span>3 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2467.79 3078.91 21.09 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Christiana: high sites with 5 km coverage and connected sites"><rect x="2467.79" y="3078.91" width="21.09" height="13.00" fill="#f8fafd"/><line class="pl" x1="2475.41" y1="3086.31" x2="2476.60" y2="3085.94"/><line class="pl" x1="2475.41" y1="3086.31" x2="2471.98" y2="3084.51"/><line class="pl" x1="2475.41" y1="3086.31" x2="2475.08" y2="3086.25"/><circle class="pring" cx="2475.41" cy="3086.31" r="5.00"/><circle class="pcpe" cx="2476.60" cy="3085.94" r="0.18"><title>Christiana Hospital - Inside 5 km (1.24 km)</title></circle><circle class="pcpe" cx="2471.98" cy="3084.51" r="0.18"><title>Christiana - Utlwanang Clinic - Inside 5 km (3.88 km)</title></circle><circle class="pcpe" cx="2475.08" cy="3086.25" r="0.18"><title>Christiana Traffic Department - Inside 5 km (0.33 km)</title></circle><rect class="phs" x="2474.97" y="3085.87" width="0.88" height="0.88"><title>Christiana Library - 5 km ring, 3 connected sites</title></rect><text class="plbl" x="2480.71" y="3086.54" font-size="0.65">Christiana Library</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Delareyville</b><span>3 connected &middot; no high site in the sheet</span></figcaption>
+      <svg viewBox="2527.72 2947.01 8.99 8.37" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Delareyville: high sites with 5 km coverage and connected sites"><rect x="2527.72" y="2947.01" width="8.99" height="8.37" fill="#f8fafd"/><circle class="pcpe-out" cx="2531.82" cy="2951.43" r="0.12"><title>Delareyville Education - No high site listed</title></circle><circle class="pcpe-out" cx="2532.76" cy="2950.96" r="0.12"><title>Delareyville Hospital - No high site listed</title></circle><circle class="pcpe-out" cx="2531.67" cy="2951.28" r="0.12"><title>Delareyville Traffic Department - No high site listed</title></circle></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Ganyesa</b><span>5 connected &middot; 1 high site &middot; 5 km ring &middot; <b class='warn'>1 outside</b></span></figcaption>
+      <svg viewBox="2398.35 2931.28 20.15 15.68" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ganyesa: high sites with 5 km coverage and connected sites"><rect x="2398.35" y="2931.28" width="20.15" height="15.68" fill="#f8fafd"/><line class="pl" x1="2406.24" y1="2940.54" x2="2406.71" y2="2942.76"/><line class="pl-out" x1="2406.24" y1="2940.54" x2="2402.86" y2="2935.23"/><line class="pl" x1="2406.24" y1="2940.54" x2="2406.55" y2="2941.81"/><line class="pl" x1="2406.24" y1="2940.54" x2="2406.83" y2="2943.01"/><line class="pl" x1="2406.24" y1="2940.54" x2="2406.55" y2="2939.87"/><circle class="pring" cx="2406.24" cy="2940.54" r="5.00"/><circle class="pcpe" cx="2406.71" cy="2942.76" r="0.18"><title>Ganyesa Hospital - Inside 5 km (2.28 km)</title></circle><circle class="pcpe-out" cx="2402.86" cy="2935.23" r="0.18"><title>Ganyesa Public Works - Outside 5 km (6.32 km)</title></circle><circle class="pcpe" cx="2406.55" cy="2941.81" r="0.18"><title>Ganyesa Library - Inside 5 km (1.31 km)</title></circle><circle class="pcpe" cx="2406.83" cy="2943.01" r="0.18"><title>Ganyesa-Agriculture - Inside 5 km (2.55 km)</title></circle><circle class="pcpe" cx="2406.55" cy="2939.87" r="0.18"><title>Ganyesa Health District - Inside 5 km (0.75 km)</title></circle><rect class="phs" x="2405.80" y="2940.10" width="0.88" height="0.88"><title>Ganyesa Social Development (Main Street to Tosca) - 5 km ring, 5 connected sites</title></rect><text class="plbl" x="2411.54" y="2940.78" font-size="0.65">Ganyesa Social…</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Itsoseng</b><span>3 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2580.63 2877.23 22.81 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Itsoseng: high sites with 5 km coverage and connected sites"><rect x="2580.63" y="2877.23" width="22.81" height="13.00" fill="#f8fafd"/><line class="pl" x1="2587.55" y1="2883.41" x2="2586.47" y2="2884.83"/><line class="pl" x1="2587.55" y1="2883.41" x2="2587.82" y2="2882.63"/><line class="pl" x1="2587.55" y1="2883.41" x2="2586.44" y2="2884.77"/><circle class="pring" cx="2587.55" cy="2883.41" r="5.00"/><circle class="pcpe" cx="2586.47" cy="2884.83" r="0.18"><title>Itsoseng Community Health Center - Inside 5 km (1.80 km)</title></circle><circle class="pcpe" cx="2587.82" cy="2882.63" r="0.18"><title>Itsoseng Public Works &amp; Roads - Inside 5 km (0.83 km)</title></circle><circle class="pcpe" cx="2586.44" cy="2884.77" r="0.18"><title>Itsoseng Library - Inside 5 km (1.76 km)</title></circle><rect class="phs" x="2587.11" y="2882.96" width="0.88" height="0.88"><title>Itsoseng Social Services - 5 km ring, 3 connected sites</title></rect><text class="plbl" x="2592.85" y="2883.64" font-size="0.65">Itsoseng Social Services</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Lehurutse</b><span>2 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2604.62 2811.39 19.41 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Lehurutse: high sites with 5 km coverage and connected sites"><rect x="2604.62" y="2811.39" width="19.41" height="13.00" fill="#f8fafd"/><line class="pl" x1="2610.97" y1="2818.14" x2="2611.31" y2="2818.72"/><line class="pl" x1="2610.97" y1="2818.14" x2="2610.94" y2="2817.06"/><circle class="pring" cx="2610.97" cy="2818.14" r="5.00"/><circle class="pcpe" cx="2611.31" cy="2818.72" r="0.18"><title>Lehurutse Education - Inside 5 km (0.68 km)</title></circle><circle class="pcpe" cx="2610.94" cy="2817.06" r="0.18"><title>Lehurutse Hospital - Inside 5 km (1.09 km)</title></circle><rect class="phs" x="2610.52" y="2817.69" width="0.88" height="0.88"><title>Lehurutse Library - 5 km ring, 2 connected sites</title></rect><text class="plbl" x="2616.27" y="2818.37" font-size="0.65">Lehurutse Library</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Lichtenburg</b><span>4 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2607.15 2886.83 19.22 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Lichtenburg: high sites with 5 km coverage and connected sites"><rect x="2607.15" y="2886.83" width="19.22" height="13.00" fill="#f8fafd"/><line class="pl" x1="2612.50" y1="2893.98" x2="2615.81" y2="2895.44"/><line class="pl" x1="2612.50" y1="2893.98" x2="2613.70" y2="2891.22"/><line class="pl" x1="2612.50" y1="2893.98" x2="2611.49" y2="2894.88"/><line class="pl" x1="2612.50" y1="2893.98" x2="2614.13" y2="2891.36"/><circle class="pring" cx="2612.50" cy="2893.98" r="5.00"/><circle class="pcpe" cx="2615.81" cy="2895.44" r="0.18"><title>Lichtenburg Weigh Bridge - Inside 5 km (3.61 km)</title></circle><circle class="pcpe" cx="2613.70" cy="2891.22" r="0.18"><title>Lichtenburg Library - Inside 5 km (3.02 km)</title></circle><circle class="pcpe" cx="2611.49" cy="2894.88" r="0.18"><title>Boikhutso Library - Inside 5 km (1.35 km)</title></circle><circle class="pcpe" cx="2614.13" cy="2891.36" r="0.18"><title>Ngaka Modiri Molema District Library - Inside 5 km (3.10 km)</title></circle><rect class="phs" x="2612.06" y="2893.54" width="0.88" height="0.88"><title>Lichtenburg Social Development - Wandrag Building - 5 km ring, 4 connected sites</title></rect><text class="plbl" x="2617.80" y="2894.22" font-size="0.65">Lichtenburg Social…</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Mahikeng</b><span>7 connected &middot; 1 high site &middot; 5 km ring &middot; <b class='warn'>1 outside</b></span></figcaption>
+      <svg viewBox="2561.46 2851.80 20.16 15.60" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mahikeng: high sites with 5 km coverage and connected sites"><rect x="2561.46" y="2851.80" width="20.16" height="15.60" fill="#f8fafd"/><line class="pl" x1="2568.87" y1="2859.92" x2="2566.37" y2="2857.01"/><line class="pl-out" x1="2568.87" y1="2859.92" x2="2565.41" y2="2856.10"/><line class="pl" x1="2568.87" y1="2859.92" x2="2568.18" y2="2858.29"/><line class="pl" x1="2568.87" y1="2859.92" x2="2566.29" y2="2855.75"/><line class="pl" x1="2568.87" y1="2859.92" x2="2567.80" y2="2860.75"/><line class="pl" x1="2568.87" y1="2859.92" x2="2570.69" y2="2863.45"/><line class="pl" x1="2568.87" y1="2859.92" x2="2569.84" y2="2860.98"/><circle class="pring" cx="2568.87" cy="2859.92" r="5.00"/><circle class="pcpe" cx="2566.37" cy="2857.01" r="0.18"><title>Mmabatho Library - Inside 5 km (3.84 km)</title></circle><circle class="pcpe-out" cx="2565.41" cy="2856.10" r="0.18"><title>Mmabatho Head Office Library and Archives Building - Outside 5 km (5.16 km)</title></circle><circle class="pcpe" cx="2568.18" cy="2858.29" r="0.18"><title>Provincial Treasury SCM - Inside 5 km (1.78 km)</title></circle><circle class="pcpe" cx="2566.29" cy="2855.75" r="0.18"><title>Mmabatho Exams Building - Inside 5 km (4.92 km)</title></circle><circle class="pcpe" cx="2567.80" cy="2860.75" r="0.18"><title>Barolong Library - Inside 5 km (1.35 km)</title></circle><circle class="pcpe" cx="2570.69" cy="2863.45" r="0.18"><title>Lomanyaneng Library - Inside 5 km (3.99 km)</title></circle><circle class="pcpe" cx="2569.84" cy="2860.98" r="0.18"><title>Danville Library - Inside 5 km (1.44 km)</title></circle><rect class="phs" x="2568.42" y="2859.47" width="0.90" height="0.90"><title>Mafikeng Library - 5 km ring, 7 connected sites</title></rect><text class="plbl" x="2574.17" y="2860.16" font-size="0.66">Mafikeng Library</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Mogwase</b><span>3 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2734.76 2788.25 19.24 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mogwase: high sites with 5 km coverage and connected sites"><rect x="2734.76" y="2788.25" width="19.24" height="13.00" fill="#f8fafd"/><line class="pl" x1="2740.53" y1="2794.84" x2="2741.99" y2="2794.17"/><line class="pl" x1="2740.53" y1="2794.84" x2="2741.28" y2="2795.34"/><line class="pl" x1="2740.53" y1="2794.84" x2="2741.61" y2="2794.46"/><circle class="pring" cx="2740.53" cy="2794.84" r="5.00"/><circle class="pcpe" cx="2741.99" cy="2794.17" r="0.18"><title>Mogwase Agriculture &amp; Rural Development (Radio Distribution) - Inside 5 km (1.60 km)</title></circle><circle class="pcpe" cx="2741.28" cy="2795.34" r="0.18"><title>Mogwase Public Works &amp; Roads - Inside 5 km (0.90 km)</title></circle><circle class="pcpe" cx="2741.61" cy="2794.46" r="0.18"><title>Mogwase Library - Inside 5 km (1.15 km)</title></circle><rect class="phs" x="2740.09" y="2794.40" width="0.88" height="0.88"><title>Mogwase Community Health Center - 5 km ring, 3 connected sites</title></rect><text class="plbl" x="2745.83" y="2795.08" font-size="0.65">Mogwase Community…</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Moses Kutane</b><span>2 connected &middot; 1 high site &middot; 5 km ring &middot; <b class='warn'>1 outside</b></span></figcaption>
+      <svg viewBox="2712.90 2802.41 23.02 13.71" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Moses Kutane: high sites with 5 km coverage and connected sites"><rect x="2712.90" y="2802.41" width="23.02" height="13.71" fill="#f8fafd"/><line class="pl-out" x1="2720.73" y1="2806.36" x2="2727.17" y2="2812.17"/><line class="pl" x1="2720.73" y1="2806.36" x2="2716.85" y2="2807.87"/><circle class="pring" cx="2720.73" cy="2806.36" r="5.00"/><circle class="pcpe-out" cx="2727.17" cy="2812.17" r="0.19"><title>Chaneng Library - Outside 5 km (8.69 km)</title></circle><circle class="pcpe" cx="2716.85" cy="2807.87" r="0.19"><title>Phatshima Library - Inside 5 km (4.17 km)</title></circle><rect class="phs" x="2720.27" y="2805.90" width="0.93" height="0.93"><title>Moses Kutane Hospital - 5 km ring, 2 connected sites</title></rect><text class="plbl" x="2726.03" y="2806.61" font-size="0.69">Moses Kutane Hospital</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Potchefstroom</b><span>5 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2682.58 2946.80 20.52 13.63" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Potchefstroom: high sites with 5 km coverage and connected sites"><rect x="2682.58" y="2946.80" width="20.52" height="13.63" fill="#f8fafd"/><line class="pl" x1="2690.51" y1="2954.23" x2="2688.39" y2="2952.42"/><line class="pl" x1="2690.51" y1="2954.23" x2="2694.71" y2="2951.74"/><line class="pl" x1="2690.51" y1="2954.23" x2="2686.53" y2="2956.47"/><line class="pl" x1="2690.51" y1="2954.23" x2="2693.06" y2="2950.75"/><line class="pl" x1="2690.51" y1="2954.23" x2="2688.28" y2="2954.01"/><circle class="pring" cx="2690.51" cy="2954.23" r="5.00"/><circle class="pcpe" cx="2688.39" cy="2952.42" r="0.19"><title>Promosa Library - Inside 5 km (2.79 km)</title></circle><circle class="pcpe" cx="2694.71" cy="2951.74" r="0.19"><title>Potchefstroom Exams Building - Inside 5 km (4.88 km)</title></circle><circle class="pcpe" cx="2686.53" cy="2956.47" r="0.19"><title>Ipeleng Library - Inside 5 km (4.57 km)</title></circle><circle class="pcpe" cx="2693.06" cy="2950.75" r="0.19"><title>Kanonierpark Library - Inside 5 km (4.33 km)</title></circle><circle class="pcpe" cx="2688.28" cy="2954.01" r="0.19"><title>Mohadin Library - Inside 5 km (2.24 km)</title></circle><rect class="phs" x="2690.05" y="2953.77" width="0.93" height="0.93"><title>Ikageng Library - 5 km ring, 5 connected sites</title></rect><text class="plbl" x="2695.81" y="2954.48" font-size="0.68">Ikageng Library</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Reivello</b><span>2 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2380.02 3041.49 22.33 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Reivello: high sites with 5 km coverage and connected sites"><rect x="2380.02" y="3041.49" width="22.33" height="13.00" fill="#f8fafd"/><line class="pl" x1="2387.28" y1="3048.07" x2="2386.40" y2="3047.77"/><line class="pl" x1="2387.28" y1="3048.07" x2="2385.77" y2="3048.20"/><circle class="pring" cx="2387.28" cy="3048.07" r="5.00"/><circle class="pcpe" cx="2386.40" cy="3047.77" r="0.18"><title>Reivello Library - Inside 5 km (0.93 km)</title></circle><circle class="pcpe" cx="2385.77" cy="3048.20" r="0.18"><title>Reivello Hospital - Inside 5 km (1.51 km)</title></circle><rect class="phs" x="2386.84" y="3047.63" width="0.88" height="0.88"><title>Boipelo/Louis De Beer Library - 5 km ring, 2 connected sites</title></rect><text class="plbl" x="2392.58" y="3048.30" font-size="0.65">Boipelo/Louis De Beer…</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Rustenburg</b><span>8 connected &middot; 1 high site &middot; 5 km ring &middot; <b class='warn'>2 outside</b></span></figcaption>
+      <svg viewBox="2723.35 2831.06 24.25 13.64" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Rustenburg: high sites with 5 km coverage and connected sites"><rect x="2723.35" y="2831.06" width="24.25" height="13.64" fill="#f8fafd"/><line class="pl" x1="2734.58" y1="2837.33" x2="2733.07" y2="2839.37"/><line class="pl" x1="2734.58" y1="2837.33" x2="2735.21" y2="2840.19"/><line class="pl-out" x1="2734.58" y1="2837.33" x2="2729.69" y2="2840.74"/><line class="pl" x1="2734.58" y1="2837.33" x2="2732.75" y2="2835.48"/><line class="pl" x1="2734.58" y1="2837.33" x2="2732.94" y2="2835.25"/><line class="pl-out" x1="2734.58" y1="2837.33" x2="2727.30" y2="2840.16"/><line class="pl" x1="2734.58" y1="2837.33" x2="2732.37" y2="2837.37"/><line class="pl" x1="2734.58" y1="2837.33" x2="2730.75" y2="2835.01"/><circle class="pring" cx="2734.58" cy="2837.33" r="5.00"/><circle class="pcpe" cx="2733.07" cy="2839.37" r="0.19"><title>Rustenburg Community Safety and Transport Management - Inside 5 km (2.55 km)</title></circle><circle class="pcpe" cx="2735.21" cy="2840.19" r="0.19"><title>Rustenburg Social Development (Mabe Business Park) - Inside 5 km (2.94 km)</title></circle><circle class="pcpe-out" cx="2729.69" cy="2840.74" r="0.19"><title>Rustenburg Arts, Culture, Sports &amp; Recreation - Outside 5 km (5.97 km)</title></circle><circle class="pcpe" cx="2732.75" cy="2835.48" r="0.19"><title>Karlienpark Library - Inside 5 km (2.61 km)</title></circle><circle class="pcpe" cx="2732.94" cy="2835.25" r="0.19"><title>Karlien Park Clinic - Inside 5 km (2.66 km)</title></circle><circle class="pcpe-out" cx="2727.30" cy="2840.16" r="0.19"><title>Rustenburg Office Of The Premier - Outside 5 km (7.81 km)</title></circle><circle class="pcpe" cx="2732.37" cy="2837.37" r="0.19"><title>Bojanala District Library - Inside 5 km (2.21 km)</title></circle><circle class="pcpe" cx="2730.75" cy="2835.01" r="0.19"><title>Tlhabane Library - Inside 5 km (4.48 km)</title></circle><rect class="phs" x="2734.12" y="2836.86" width="0.93" height="0.93"><title>East End Library - 5 km ring, 8 connected sites</title></rect><text class="plbl" x="2739.88" y="2837.57" font-size="0.68">East End Library</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Schweizer-Reneke</b><span>9 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2499.52 3000.56 23.37 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Schweizer-Reneke: high sites with 5 km coverage and connected sites"><rect x="2499.52" y="3000.56" width="23.37" height="13.00" fill="#f8fafd"/><line class="pl" x1="2507.01" y1="3007.17" x2="2507.91" y2="3005.58"/><line class="pl" x1="2507.01" y1="3007.17" x2="2504.06" y2="3008.54"/><line class="pl" x1="2507.01" y1="3007.17" x2="2505.83" y2="3006.69"/><line class="pl" x1="2507.01" y1="3007.17" x2="2507.99" y2="3007.04"/><line class="pl" x1="2507.01" y1="3007.17" x2="2507.92" y2="3006.65"/><line class="pl" x1="2507.01" y1="3007.17" x2="2505.66" y2="3007.27"/><line class="pl" x1="2507.01" y1="3007.17" x2="2507.15" y2="3007.13"/><line class="pl" x1="2507.01" y1="3007.17" x2="2507.88" y2="3006.88"/><line class="pl" x1="2507.01" y1="3007.17" x2="2505.22" y2="3007.50"/><circle class="pring" cx="2507.01" cy="3007.17" r="5.00"/><circle class="pcpe" cx="2507.91" cy="3005.58" r="0.18"><title>Schweizer-Reneke Hospital - Inside 5 km (1.83 km)</title></circle><circle class="pcpe" cx="2504.06" cy="3008.54" r="0.18"><title>Schweizer-Reneke Mamusa Community Health Center - Inside 5 km (3.25 km)</title></circle><circle class="pcpe" cx="2505.83" cy="3006.69" r="0.18"><title>Schweizer-Reneke Charon Clinic - Inside 5 km (1.27 km)</title></circle><circle class="pcpe" cx="2507.99" cy="3007.04" r="0.18"><title>Schweizer-Reneke Public Works and Transport - Inside 5 km (0.99 km)</title></circle><circle class="pcpe" cx="2507.92" cy="3006.65" r="0.18"><title>Schweizer-Reneke Town Clinic - Inside 5 km (1.05 km)</title></circle><circle class="pcpe" cx="2505.66" cy="3007.27" r="0.18"><title>Schweizer-Reneke Ipelegeng Clinic - Inside 5 km (1.35 km)</title></circle><circle class="pcpe" cx="2507.15" cy="3007.13" r="0.18"><title>Schweizer-Reneke Health District Office - Inside 5 km (0.14 km)</title></circle><circle class="pcpe" cx="2507.88" cy="3006.88" r="0.18"><title>Schweizer-Reneke Library - Inside 5 km (0.92 km)</title></circle><circle class="pcpe" cx="2505.22" cy="3007.50" r="0.18"><title>Ipelegeng Library - Inside 5 km (1.82 km)</title></circle><rect class="phs" x="2506.57" y="3006.72" width="0.88" height="0.88"><title>Schweizer-Reneke Social Development - 5 km ring, 9 connected sites</title></rect><text class="plbl" x="2512.31" y="3007.40" font-size="0.65">Schweizer-Reneke Social…</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Setlagole</b><span>2 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2501.03 2900.14 18.22 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Setlagole: high sites with 5 km coverage and connected sites"><rect x="2501.03" y="2900.14" width="18.22" height="13.00" fill="#f8fafd"/><line class="pl" x1="2506.20" y1="2905.87" x2="2508.47" y2="2904.22"/><line class="pl" x1="2506.20" y1="2905.87" x2="2508.87" y2="2909.05"/><circle class="pring" cx="2506.20" cy="2905.87" r="5.00"/><circle class="pcpe" cx="2508.47" cy="2904.22" r="0.18"><title>Setlagole Arts &amp; Culture - Inside 5 km (2.81 km)</title></circle><circle class="pcpe" cx="2508.87" cy="2909.05" r="0.18"><title>Setlagole Library - Inside 5 km (4.17 km)</title></circle><rect class="phs" x="2505.75" y="2905.43" width="0.88" height="0.88"><title>Setlagole Social Development - 5 km ring, 2 connected sites</title></rect><text class="plbl" x="2511.50" y="2906.11" font-size="0.65">Setlagole Social…</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Taung</b><span>7 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2438.17 3039.71 20.08 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Taung: high sites with 5 km coverage and connected sites"><rect x="2438.17" y="3039.71" width="20.08" height="13.00" fill="#f8fafd"/><line class="pl" x1="2444.79" y1="3045.72" x2="2443.96" y2="3046.36"/><line class="pl" x1="2444.79" y1="3045.72" x2="2446.79" y2="3044.95"/><line class="pl" x1="2444.79" y1="3045.72" x2="2442.54" y2="3047.47"/><line class="pl" x1="2444.79" y1="3045.72" x2="2443.97" y2="3046.74"/><line class="pl" x1="2444.79" y1="3045.72" x2="2445.73" y2="3045.56"/><line class="pl" x1="2444.79" y1="3045.72" x2="2442.60" y2="3047.19"/><line class="pl" x1="2444.79" y1="3045.72" x2="2442.74" y2="3047.21"/><circle class="pring" cx="2444.79" cy="3045.72" r="5.00"/><circle class="pcpe" cx="2443.96" cy="3046.36" r="0.18"><title>Taung Social Development - Inside 5 km (1.04 km)</title></circle><circle class="pcpe" cx="2446.79" cy="3044.95" r="0.18"><title>Taung Hospital - Inside 5 km (2.15 km)</title></circle><circle class="pcpe" cx="2442.54" cy="3047.47" r="0.18"><title>Taung Education - Inside 5 km (2.85 km)</title></circle><circle class="pcpe" cx="2443.97" cy="3046.74" r="0.18"><title>Taung Public Works &amp; Roads - Inside 5 km (1.31 km)</title></circle><circle class="pcpe" cx="2445.73" cy="3045.56" r="0.18"><title>Taung Community Safety and Transport Management - Inside 5 km (0.95 km)</title></circle><circle class="pcpe" cx="2442.60" cy="3047.19" r="0.18"><title>Taung Agriculture &amp; Rural Development - Inside 5 km (2.63 km)</title></circle><circle class="pcpe" cx="2442.74" cy="3047.21" r="0.18"><title>Taung Library - Inside 5 km (2.53 km)</title></circle><rect class="phs" x="2444.34" y="3045.28" width="0.88" height="0.88"><title>Taung Agriculture College - 5 km ring, 7 connected sites</title></rect><text class="plbl" x="2450.09" y="3045.95" font-size="0.65">Taung Agriculture…</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Vryburg</b><span>3 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2447.26 2974.95 21.58 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Vryburg: high sites with 5 km coverage and connected sites"><rect x="2447.26" y="2974.95" width="21.58" height="13.00" fill="#f8fafd"/><line class="pl" x1="2452.96" y1="2980.20" x2="2453.29" y2="2980.66"/><line class="pl" x1="2452.96" y1="2980.20" x2="2454.66" y2="2982.70"/><line class="pl" x1="2452.96" y1="2980.20" x2="2452.86" y2="2982.06"/><circle class="pring" cx="2452.96" cy="2980.20" r="5.00"/><circle class="pcpe" cx="2453.29" cy="2980.66" r="0.18"><title>Vryburg Library - Inside 5 km (0.58 km)</title></circle><circle class="pcpe" cx="2454.66" cy="2982.70" r="0.18"><title>Huhudi Library - Inside 5 km (3.04 km)</title></circle><circle class="pcpe" cx="2452.86" cy="2982.06" r="0.18"><title>Joe Morolong Hospital Library - Inside 5 km (1.88 km)</title></circle><rect class="phs" x="2452.52" y="2979.76" width="0.88" height="0.88"><title>Vryburg District Library - 5 km ring, 3 connected sites</title></rect><text class="plbl" x="2458.26" y="2980.43" font-size="0.65">Vryburg District Library</text></svg>
+    </figure>
+    <figure class="tile">
+      <figcaption><b>Zeerust</b><span>4 connected &middot; 1 high site &middot; 5 km ring</span></figcaption>
+      <svg viewBox="2612.46 2818.12 22.61 13.00" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Zeerust: high sites with 5 km coverage and connected sites"><rect x="2612.46" y="2818.12" width="22.61" height="13.00" fill="#f8fafd"/><line class="pl" x1="2619.19" y1="2824.54" x2="2618.00" y2="2824.40"/><line class="pl" x1="2619.19" y1="2824.54" x2="2619.32" y2="2824.83"/><line class="pl" x1="2619.19" y1="2824.54" x2="2619.93" y2="2824.62"/><line class="pl" x1="2619.19" y1="2824.54" x2="2619.26" y2="2824.57"/><circle class="pring" cx="2619.19" cy="2824.54" r="5.00"/><circle class="pcpe" cx="2618.00" cy="2824.40" r="0.18"><title>Zeerust Hospital - Inside 5 km (1.20 km)</title></circle><circle class="pcpe" cx="2619.32" cy="2824.83" r="0.18"><title>Zeerust EMRS (Municipality Building - Ambulance services) - Inside 5 km (0.32 km)</title></circle><circle class="pcpe" cx="2619.93" cy="2824.62" r="0.18"><title>Zeerust Arts, Culture, Sports &amp; Recreation - Inside 5 km (0.74 km)</title></circle><circle class="pcpe" cx="2619.26" cy="2824.57" r="0.18"><title>Zeerust Library - Inside 5 km (0.07 km)</title></circle><rect class="phs" x="2618.75" y="2824.10" width="0.88" height="0.88"><title>Zeerust Agriculture &amp; Rural Development - 5 km ring, 4 connected sites</title></rect><text class="plbl" x="2624.49" y="2824.78" font-size="0.65">Zeerust Agriculture and…</text></svg>
+    </figure>
+  </div>
+
+  <h2>High sites and their coverage</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Town</th><th>High site</th><th>Bearer</th><th>Connected</th>
+      <th>In 5 km</th><th>Out</th><th>Farthest (km)</th><th>Coordinates</th></tr></thead>
+      <tbody><tr><td>Bloemhof</td><td><b>Bloemhof Social Development</b></td><td>Telkom Fiber</td><td class='n'>5</td><td class='n'>5</td><td class='n'>0</td><td class='n'>2.10</td><td><code>-27.63891, 25.59236</code></td></tr><tr><td>Brits</td><td><b>Brits Library</b></td><td>Vodacom MW</td><td class='n'>3</td><td class='n'>3</td><td class='n'>0</td><td class='n'>3.21</td><td><code>-25.63498, 27.77822</code></td></tr><tr><td>Brits</td><td><b>Lethabong Maboloka Library</b></td><td>Vodacom MW</td><td class='n'>3</td><td class='n'>0</td><td class='n'>3</td><td class='n'>8.97</td><td><code>-25.42218, 27.84335</code></td></tr><tr><td>Brits</td><td><b>Mothutlung Library</b></td><td>Vodacom MW</td><td class='n'>3</td><td class='n'>2</td><td class='n'>1</td><td class='n'>5.90</td><td><code>-25.60372, 27.88467</code></td></tr><tr><td>Christiana</td><td><b>Christiana Library</b></td><td>Vodacom MW</td><td class='n'>3</td><td class='n'>3</td><td class='n'>0</td><td class='n'>3.88</td><td><code>-27.91171, 25.16311</code></td></tr><tr><td>Ganyesa</td><td><b>Ganyesa Social Development (Main Street to Tosca)</b></td><td>Radio Link</td><td class='n'>5</td><td class='n'>4</td><td class='n'>1</td><td class='n'>6.32</td><td><code>-26.59345, 24.17290</code></td></tr><tr><td>Itsoseng</td><td><b>Itsoseng Social Services</b></td><td>MTN MW</td><td class='n'>3</td><td class='n'>3</td><td class='n'>0</td><td class='n'>1.80</td><td><code>-26.07670, 25.87957</code></td></tr><tr><td>Lehurutse</td><td><b>Lehurutse Library</b></td><td>Radio Link</td><td class='n'>2</td><td class='n'>2</td><td class='n'>0</td><td class='n'>1.09</td><td><code>-25.48642, 25.98275</code></td></tr><tr><td>Lichtenburg</td><td><b>Lichtenburg Social Development - Wandrag Building</b></td><td>Telkom Fiber</td><td class='n'>4</td><td class='n'>4</td><td class='n'>0</td><td class='n'>3.61</td><td><code>-26.17236, 26.14823</code></td></tr><tr><td>Mahikeng</td><td><b>Mafikeng Library</b></td><td>Vodacom MW</td><td class='n'>7</td><td class='n'>6</td><td class='n'>1</td><td class='n'>5.16</td><td><code>-25.86430, 25.64356</code></td></tr><tr><td>Mogwase</td><td><b>Mogwase Community Health Center</b></td><td>Vodacom MW</td><td class='n'>3</td><td class='n'>3</td><td class='n'>0</td><td class='n'>1.60</td><td><code>-25.27578, 27.22466</code></td></tr><tr><td>Moses Kutane</td><td><b>Moses Kutane Hospital</b></td><td>Vodacom MW</td><td class='n'>2</td><td class='n'>1</td><td class='n'>1</td><td class='n'>8.69</td><td><code>-25.37996, 27.05647</code></td></tr><tr><td>Potchefstroom</td><td><b>Ikageng Library</b></td><td>DFA</td><td class='n'>5</td><td class='n'>5</td><td class='n'>0</td><td class='n'>4.88</td><td><code>-26.71723, 27.05594</code></td></tr><tr><td>Reivello</td><td><b>Boipelo/Louis De Beer Library</b></td><td>MTN MW</td><td class='n'>2</td><td class='n'>2</td><td class='n'>0</td><td class='n'>1.51</td><td><code>-27.56587, 24.19131</code></td></tr><tr><td>Rustenburg</td><td><b>East End Library</b></td><td>Vodacom MW</td><td class='n'>8</td><td class='n'>6</td><td class='n'>2</td><td class='n'>7.81</td><td><code>-25.65998, 27.25387</code></td></tr><tr><td>Schweizer-Reneke</td><td><b>Schweizer-Reneke Social Development</b></td><td>Telkom Fiber</td><td class='n'>9</td><td class='n'>9</td><td class='n'>0</td><td class='n'>3.25</td><td><code>-27.19596, 25.31964</code></td></tr><tr><td>Setlagole</td><td><b>Setlagole Social Development</b></td><td>Vodacom MW</td><td class='n'>2</td><td class='n'>2</td><td class='n'>0</td><td class='n'>4.17</td><td><code>-26.27988, 25.10961</code></td></tr><tr><td>Taung</td><td><b>Taung Agriculture College</b></td><td>Radio Link/Herotel Fiber</td><td class='n'>7</td><td class='n'>7</td><td class='n'>0</td><td class='n'>2.85</td><td><code>-27.54463, 24.77076</code></td></tr><tr><td>Vryburg</td><td><b>Vryburg District Library</b></td><td>Vodacom MW</td><td class='n'>3</td><td class='n'>3</td><td class='n'>0</td><td class='n'>3.04</td><td><code>-26.95206, 24.72257</code></td></tr><tr><td>Zeerust</td><td><b>Zeerust Agriculture &amp; Rural Development</b></td><td>Telkom Fiber</td><td class='n'>4</td><td class='n'>4</td><td class='n'>0</td><td class='n'>1.20</td><td><code>-25.54438, 26.07764</code></td></tr></tbody>
+    </table>
+  </div>
+
+  <h2>Connected sites outside the 5 km radius <span>&mdash; 9 of 86</span></h2>
+  <table>
+    <thead><tr><th>Site</th><th>Town</th><th>High site</th><th>Distance (km)</th><th>Beyond radius</th></tr></thead>
+    <tbody><tr><td><b>Jericho Library</b></td><td>Brits</td><td>Lethabong Maboloka Library</td><td class='n'>8.97</td><td class='n'>+3.97</td></tr><tr><td><b>Chaneng Library</b></td><td>Moses Kutane</td><td>Moses Kutane Hospital</td><td class='n'>8.69</td><td class='n'>+3.69</td></tr><tr><td><b>Rustenburg Office Of The Premier</b></td><td>Rustenburg</td><td>East End Library</td><td class='n'>7.81</td><td class='n'>+2.81</td></tr><tr><td><b>Lethlabile Library</b></td><td>Brits</td><td>Lethabong Maboloka Library</td><td class='n'>7.25</td><td class='n'>+2.25</td></tr><tr><td><b>Lethlabile Education</b></td><td>Brits</td><td>Lethabong Maboloka Library</td><td class='n'>7.23</td><td class='n'>+2.23</td></tr><tr><td><b>Ganyesa Public Works</b></td><td>Ganyesa</td><td>Ganyesa Social Development (Main Street to Tosca)</td><td class='n'>6.32</td><td class='n'>+1.32</td></tr><tr><td><b>Rustenburg Arts, Culture, Sports &amp; Recreation</b></td><td>Rustenburg</td><td>East End Library</td><td class='n'>5.97</td><td class='n'>+0.97</td></tr><tr><td><b>Mmakau Library</b></td><td>Brits</td><td>Mothutlung Library</td><td class='n'>5.90</td><td class='n'>+0.90</td></tr><tr><td><b>Mmabatho Head Office Library and Archives Building</b></td><td>Mahikeng</td><td>Mafikeng Library</td><td class='n'>5.16</td><td class='n'>+0.16</td></tr></tbody>
+  </table>
+
+  <h2>What had to be fixed</h2>
+  <table>
+    <thead><tr><th>Severity</th><th>Site</th><th>Field</th><th>Finding</th></tr></thead>
+    <tbody><tr><td><span class='tag high'>High</span></td><td>Brits Library</td><td>Coordinates</td><td>latitude/longitude blank in source</td></tr><tr><td><span class='tag high'>High</span></td><td>Lethabong Maboloka Library</td><td>Coordinates</td><td>latitude/longitude blank in source</td></tr><tr><td><span class='tag high'>High</span></td><td>Lehurutse Library</td><td>Latitude</td><td>+25.486423 is north of the equator</td></tr><tr><td><span class='tag high'>High</span></td><td>Rustenburg Office Of The Premier</td><td>Longitude</td><td>26.181303 plots 108 km west of East End high site</td></tr><tr><td><span class='tag medium'>Medium</span></td><td>Delareyville Education</td><td>High Site</td><td>no high site listed for this town in the source sheet</td></tr><tr><td><span class='tag medium'>Medium</span></td><td>Delareyville Hospital</td><td>High Site</td><td>no high site listed for this town in the source sheet</td></tr><tr><td><span class='tag medium'>Medium</span></td><td>Delareyville Traffic Department</td><td>High Site</td><td>no high site listed for this town in the source sheet</td></tr><tr><td><span class='tag medium'>Medium</span></td><td>Bloemhof Agriculture &amp; Rural</td><td>Distance</td><td>sheet says 0.25 km, coordinates give 1.76 km</td></tr><tr><td><span class='tag medium'>Medium</span></td><td>Bloemhof - Coverdale Clinic</td><td>Distance</td><td>sheet says 1.53 km, coordinates give 0.00 km</td></tr><tr><td><span class='tag medium'>Medium</span></td><td>Bloemhof - Coverdale Clinic</td><td>Coordinates</td><td>identical to row 43</td></tr><tr><td><span class='tag medium'>Medium</span></td><td>Bloemhof Library</td><td>Distance</td><td>sheet says 0.80 km, coordinates give 2.10 km</td></tr><tr><td><span class='tag medium'>Medium</span></td><td>Taung Agriculture &amp; Rural Development</td><td>Distance</td><td>sheet says 6.56 km, coordinates give 2.63 km</td></tr></tbody>
+  </table>
+  <p class="meta">All 32 findings are listed on the <b>Data Quality</b> sheet of the workbook.</p>
+
+  <h2>Method</h2>
+  <ul class="notes">
+    <li><b>Coverage:</b> every high site carries a 5 km radius ring; a connected site is reported as
+        inside or outside that ring using its great-circle distance from the high site it serves.</li>
+    <li><b>Connectivity:</b> each connected site is joined to its high site with a link line, in the KMZ and on the map above.</li>
+    <li><b>Distances were recalculated</b> from the coordinates and compared with the sheet. Nine sites come out
+        more than 1 km different from the figure in the sheet; the differences are listed on the Data Quality sheet.</li>
+    <li><b>Two high sites had no coordinates</b> in the sheet (Brits Library, Lethabong Maboloka Library). They are
+        positioned by trilateration from their connected sites and the sheet's own distances, and flagged
+        &ldquo;estimated&rdquo; in every file.</li>
+    <li><b>Three Delareyville sites</b> have a distance but no high site anywhere in the sheet, so they are left
+        unassigned rather than guessed.</li>
+    <li>Nothing in the source data was deleted: the original rows 40&ndash;145 are kept verbatim on the last sheet.</li>
+  </ul>
+
+  <footer>Built from the screenshot of the &ldquo;CURRENT TECHNOLOGY&rdquo; sheet, rows 40&ndash;145
+  (106 records). Geometry: WGS84, great-circle distances, 5 km rings.
+  Static page &mdash; no tracking, no external requests.</footer>
+</div>
+</body>
+</html>

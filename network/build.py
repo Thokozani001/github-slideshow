@@ -711,6 +711,31 @@ THIN = Side(style="thin", color=LINE)
 BOX = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
 
 
+def print_setup(ws, title, landscape=True, fit_width=1):
+    """Make every sheet behave like a page of a report when printed / exported to PDF."""
+    ws.page_setup.orientation = "landscape" if landscape else "portrait"
+    ws.page_setup.paperSize = ws.PAPERSIZE_A4
+    ws.page_margins.left = ws.page_margins.right = 0.4
+    ws.page_margins.top = 0.6
+    ws.page_margins.bottom = 0.55
+    ws.page_margins.header = ws.page_margins.footer = 0.25
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_setup.fitToWidth = fit_width
+    ws.page_setup.fitToHeight = 0
+    ws.oddHeader.left.text = "North West site network - Current Technology"
+    ws.oddHeader.left.size = 8
+    ws.oddHeader.left.color = "6F6F6F"
+    ws.oddHeader.right.text = title
+    ws.oddHeader.right.size = 8
+    ws.oddHeader.right.color = "6F6F6F"
+    ws.oddFooter.left.text = "Built from the CURRENT TECHNOLOGY sheet, rows 40-145"
+    ws.oddFooter.left.size = 8
+    ws.oddFooter.left.color = "6F6F6F"
+    ws.oddFooter.right.text = "Page &P of &N"
+    ws.oddFooter.right.size = 8
+    ws.oddFooter.right.color = "6F6F6F"
+
+
 def style_header(ws, row, ncols, height=32):
     for c in range(1, ncols + 1):
         cell = ws.cell(row=row, column=c)
@@ -857,6 +882,7 @@ def write_xlsx(rows, issues, path):
         ws.merge_cells(start_row=rr, start_column=3, end_row=rr, end_column=9)
         l.font = Font(size=9.5, color=font_colour)
         l.alignment = Alignment(vertical="center", indent=1)
+    print_setup(ws, "Overview", landscape=False)
 
     # ------------------------------------------------------------------ sites
     ws = wb.create_sheet("Sites")
@@ -960,9 +986,7 @@ def write_xlsx(rows, issues, path):
                                   fill=PatternFill("solid", bgColor=AMBER))
     )
     ws.print_title_rows = "4:4"
-    ws.page_setup.orientation = "landscape"
-    ws.page_setup.fitToWidth = 1
-    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    print_setup(ws, "Sites")
 
     # -------------------------------------------------------------- high sites
     ws = wb.create_sheet("High Sites")
@@ -1044,9 +1068,8 @@ def write_xlsx(rows, issues, path):
         c.alignment = Alignment(horizontal="center", vertical="center")
     ws.auto_filter.ref = f"A4:N{last}"
     ws.freeze_panes = "C5"
-    ws.page_setup.orientation = "landscape"
-    ws.sheet_properties.pageSetUpPr.fitToPage = True
-    ws.page_setup.fitToWidth = 1
+    ws.print_title_rows = "4:4"
+    print_setup(ws, "High Sites")
 
     # ------------------------------------------------------------------ towns
     ws = wb.create_sheet("Towns")
@@ -1102,6 +1125,7 @@ def write_xlsx(rows, issues, path):
     chart.legend = None
     chart.style = 10
     ws.add_chart(chart, "J4")
+    print_setup(ws, "Towns")
 
     # ---------------------------------------------------------- remote links
     ws = wb.create_sheet("Remote Links")
@@ -1141,6 +1165,7 @@ def write_xlsx(rows, issues, path):
                 cell.number_format = "0.00"
         ws.row_dimensions[r_i].height = 16
         r_i += 1
+    print_setup(ws, "Remote links")
 
     # ---------------------------------------------------------- data quality
     ws = wb.create_sheet("Data Quality")
@@ -1175,6 +1200,8 @@ def write_xlsx(rows, issues, path):
         r_i += 1
     ws.auto_filter.ref = f"A4:F{r_i - 1}"
     ws.freeze_panes = "A5"
+    ws.print_title_rows = "4:4"
+    print_setup(ws, "Data quality")
 
     # ------------------------------------------------------- source (verbatim)
     ws = wb.create_sheet("Source (as captured)")
@@ -1209,7 +1236,9 @@ def write_xlsx(rows, issues, path):
         r_i += 1
     ws.auto_filter.ref = f"A4:H{r_i - 1}"
     ws.freeze_panes = "B5"
+    print_setup(ws, "Source rows")
 
+    wb.active = 0
     wb.save(path)
     return path
 
@@ -1228,6 +1257,16 @@ def write_kmz(kml_text, path):
     )
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr("doc.kml", kml_text)
+    return path
+
+
+def write_zip(path, files):
+    """One-click bundle: KMZ + Excel report + KML + CSV + notes."""
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+        for item in files:
+            full = os.path.join(HERE, item)
+            if os.path.exists(full):
+                z.write(full, item)
     return path
 
 
@@ -1455,6 +1494,20 @@ def write_index(rows, issues, path):
           box-shadow:0 6px 20px rgba(20,40,70,.07); }}
   .kpi b {{ display:block; font-size:26px; color:var(--navy); line-height:1.15; }}
   .kpi span {{ font-size:12px; color:var(--grey); }}
+  .band {{ margin-top:26px; background:#fff; border:1px solid var(--line); border-radius:14px;
+           padding:18px 20px; display:flex; flex-wrap:wrap; gap:16px 24px; align-items:center;
+           justify-content:space-between; box-shadow:0 6px 22px rgba(20,40,70,.06); }}
+  .band-txt b {{ display:block; font-size:16px; color:var(--navy); }}
+  .band-txt span {{ font-size:12.5px; color:var(--grey); }}
+  .band-btns {{ display:flex; flex-wrap:wrap; gap:10px; }}
+  .big {{ display:flex; flex-direction:column; gap:1px; text-decoration:none; border-radius:10px;
+          padding:10px 18px; border:1px solid var(--navy); background:#fff; color:var(--navy);
+          min-width:158px; }}
+  .big:hover {{ background:#eef2f8; }}
+  .big.primary {{ background:var(--navy); border-color:var(--navy); color:#fff; }}
+  .big.primary:hover {{ background:#2e5c9a; }}
+  .big .t {{ font-weight:700; font-size:14px; }}
+  .big .s {{ font-size:11px; opacity:.75; }}
   .cards {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; }}
   .card {{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px;
            display:flex; flex-direction:column; gap:6px; }}
@@ -1527,6 +1580,27 @@ def write_index(rows, issues, path):
     <div class="kpi"><b>{len(high)}</b><span>items to verify</span></div>
   </div>
 
+  <div class="band">
+    <div class="band-txt">
+      <b>Download the results</b>
+      <span>Everything below is built from the same {len(rows)} sites &mdash; one map, one workbook, no differences between them.</span>
+    </div>
+    <div class="band-btns">
+      <a class="big primary" href="NW_Site_Network_Pack.zip" download>
+        <span class="t">Download both</span>
+        <span class="s">ZIP &middot; {size('NW_Site_Network_Pack.zip')}</span>
+      </a>
+      <a class="big" href="NW_Network_Sites.kmz" download>
+        <span class="t">Google Earth map</span>
+        <span class="s">KMZ &middot; {size('NW_Network_Sites.kmz')}</span>
+      </a>
+      <a class="big" href="NW_Network_Site_Database.xlsx" download>
+        <span class="t">Excel report</span>
+        <span class="s">XLSX &middot; {size('NW_Network_Site_Database.xlsx')}</span>
+      </a>
+    </div>
+  </div>
+
   <h2>Downloads <span>&mdash; both files cover exactly the same {len(rows)} sites</span></h2>
   <div class="cards">
     <div class="card">
@@ -1546,7 +1620,7 @@ def write_index(rows, issues, path):
       <div class="meta">Excel / LibreOffice / Google Sheets</div>
     </div>
     <div class="card">
-      <div class="fmt">KML &middot; {size('NW_Network_Sites.kml')}</div>
+      <div class="fmt">KML + CSV &middot; {size('NW_Network_Sites.kml')}</div>
       <h3>Plain KML or CSV</h3>
       <p>Use the KML for Google My Maps or any GIS tool. The CSV is the cleaned data set
          for import into your own systems.</p>
@@ -1632,13 +1706,25 @@ def main():
     csv_path = os.path.join(HERE, "nw_sites_clean.csv")
     html_path = os.path.join(HERE, "index.html")
 
+    zip_path = os.path.join(HERE, "NW_Site_Network_Pack.zip")
+
     write_xlsx(rows, issues, xlsx_path)          # first: index.html reads file sizes
     kml_text = write_kml(rows, kml_path)
     write_kmz(kml_text, kmz_path)
     write_csv(rows, csv_path)
+    write_zip(
+        zip_path,
+        [
+            "NW_Network_Sites.kmz",
+            "NW_Network_Site_Database.xlsx",
+            "NW_Network_Sites.kml",
+            "nw_sites_clean.csv",
+            "README.md",
+        ],
+    )
     write_index(rows, issues, html_path)
 
-    for p in (kml_path, kmz_path, xlsx_path, csv_path, html_path):
+    for p in (kml_path, kmz_path, xlsx_path, csv_path, zip_path, html_path):
         print(f"{os.path.getsize(p)/1024:8.1f} KB  {os.path.relpath(p, os.path.dirname(HERE))}")
 
 

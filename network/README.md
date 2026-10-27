@@ -8,11 +8,12 @@ the sheet is the only source, and every derived value is traceable back to its r
 
 | File | What it is |
 |---|---|
+| `NW_Site_Network_Pack.zip` | **One-click bundle** — the KMZ, the Excel report, the KML, the CSV and this README in a single download. |
 | `NW_Network_Sites.kmz` | Google Earth map. 20 high sites, each with a **5 km coverage radius**; 86 connected sites; a link line from every connected site to the high site that serves it. Five switchable layers, popups with the full detail per site. |
-| `NW_Network_Site_Database.xlsx` | The improved spreadsheet — 7 sheets (see below). |
+| `NW_Network_Site_Database.xlsx` | The improved spreadsheet / report — 7 sheets, print-ready A4 landscape with headers, footers and page numbers. |
 | `NW_Network_Sites.kml` | Same map as plain KML (re-import into Google Earth, My Maps, QGIS, ArcGIS). |
 | `nw_sites_clean.csv` | Cleaned flat data set for any other system. |
-| `index.html` | Static download + summary page with a coverage panel for every town. |
+| `index.html` | Static download page (big download buttons at the top) plus a summary and a coverage panel for every town. |
 | `source_sites.csv` | The captured source rows, verbatim, including the errors. |
 | `build.py` | Regenerates every file above from `source_sites.csv`. |
 

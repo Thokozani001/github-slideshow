@@ -21,6 +21,20 @@
           box-shadow:0 6px 20px rgba(20,40,70,.07); }
   .kpi b { display:block; font-size:26px; color:var(--navy); line-height:1.15; }
   .kpi span { font-size:12px; color:var(--grey); }
+  .band { margin-top:26px; background:#fff; border:1px solid var(--line); border-radius:14px;
+           padding:18px 20px; display:flex; flex-wrap:wrap; gap:16px 24px; align-items:center;
+           justify-content:space-between; box-shadow:0 6px 22px rgba(20,40,70,.06); }
+  .band-txt b { display:block; font-size:16px; color:var(--navy); }
+  .band-txt span { font-size:12.5px; color:var(--grey); }
+  .band-btns { display:flex; flex-wrap:wrap; gap:10px; }
+  .big { display:flex; flex-direction:column; gap:1px; text-decoration:none; border-radius:10px;
+          padding:10px 18px; border:1px solid var(--navy); background:#fff; color:var(--navy);
+          min-width:158px; }
+  .big:hover { background:#eef2f8; }
+  .big.primary { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .big.primary:hover { background:#2e5c9a; }
+  .big .t { font-weight:700; font-size:14px; }
+  .big .s { font-size:11px; opacity:.75; }
   .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; }
   .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px;
            display:flex; flex-direction:column; gap:6px; }
@@ -93,6 +107,27 @@
     <div class="kpi"><b>4</b><span>items to verify</span></div>
   </div>
 
+  <div class="band">
+    <div class="band-txt">
+      <b>Download the results</b>
+      <span>Everything below is built from the same 106 sites &mdash; one map, one workbook, no differences between them.</span>
+    </div>
+    <div class="band-btns">
+      <a class="big primary" href="NW_Site_Network_Pack.zip" download>
+        <span class="t">Download both</span>
+        <span class="s">ZIP &middot; 103 KB</span>
+      </a>
+      <a class="big" href="NW_Network_Sites.kmz" download>
+        <span class="t">Google Earth map</span>
+        <span class="s">KMZ &middot; 27 KB</span>
+      </a>
+      <a class="big" href="NW_Network_Site_Database.xlsx" download>
+        <span class="t">Excel report</span>
+        <span class="s">XLSX &middot; 45 KB</span>
+      </a>
+    </div>
+  </div>
+
   <h2>Downloads <span>&mdash; both files cover exactly the same 106 sites</span></h2>
   <div class="cards">
     <div class="card">
@@ -104,7 +139,7 @@
       <div class="meta">Google Earth Pro / web / mobile</div>
     </div>
     <div class="card">
-      <div class="fmt">XLSX &middot; 43 KB</div>
+      <div class="fmt">XLSX &middot; 45 KB</div>
       <h3>Improved spreadsheet</h3>
       <p>7 sheets: overview, all sites with both distances and the 5 km check, high sites,
          towns, remote links, data quality and the untouched source rows for audit.</p>
@@ -112,7 +147,7 @@
       <div class="meta">Excel / LibreOffice / Google Sheets</div>
     </div>
     <div class="card">
-      <div class="fmt">KML &middot; 327 KB</div>
+      <div class="fmt">KML + CSV &middot; 327 KB</div>
       <h3>Plain KML or CSV</h3>
       <p>Use the KML for Google My Maps or any GIS tool. The CSV is the cleaned data set
          for import into your own systems.</p>
